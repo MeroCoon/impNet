@@ -162,9 +162,8 @@ const ThemeToggle = () => {
 };
 
 // Компонент Header
-const Header = () => {
+const Header = ({ activeTab, setActiveTab }) => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <header className="header">
