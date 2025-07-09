@@ -325,6 +325,14 @@ async def create_status_check(input: StatusCheckCreate):
     _ = await db.status_checks.insert_one(status_obj.dict())
     return status_obj
 
+@api_router.post("/reset-database")
+async def reset_database():
+    """Reset database - only for development"""
+    await db.users.drop()
+    await db.roles.drop()
+    await init_default_roles()
+    return {"message": "Database reset successfully"}
+
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
