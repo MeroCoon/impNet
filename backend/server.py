@@ -138,13 +138,13 @@ class Passport(BaseModel):
     user_id: str
     series: str
     number: str
-    issue_date: date
+    issue_date: datetime
     issue_place: str
     photo_document_id: Optional[str] = None
     first_name: str
     last_name: str
     middle_name: Optional[str] = None
-    birth_date: date
+    birth_date: datetime
     birth_place: str
     gender: str  # "М" or "Ж"
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -163,12 +163,12 @@ class PassportResponse(BaseModel):
     id: str
     series: str
     number: str
-    issue_date: date
+    issue_date: datetime
     issue_place: str
     first_name: str
     last_name: str
     middle_name: Optional[str] = None
-    birth_date: date
+    birth_date: datetime
     birth_place: str
     gender: str
     created_at: datetime
