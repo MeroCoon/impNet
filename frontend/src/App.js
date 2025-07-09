@@ -253,7 +253,7 @@ const LoginForm = () => {
         </form>
         
         <div className="auth-footer">
-          <p>Тестовый аккаунт: admin@impnet.local / admin123</p>
+          <p>Тестовый аккаунт: admin@impnet.ru / admin123</p>
         </div>
       </div>
     </div>
