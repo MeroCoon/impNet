@@ -288,6 +288,7 @@ const LoginForm = () => {
 const Dashboard = () => {
   const { user } = useAuth();
   const [roles, setRoles] = useState([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
     fetchRoles();
@@ -308,59 +309,91 @@ const Dashboard = () => {
 
   const userRole = getUserRole();
 
-  return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Добро пожаловать, {user.full_name}!</h1>
-        <p className="role-badge">
-          {userRole?.display_name || 'Загружается...'}
-        </p>
-      </div>
-      
-      <div className="dashboard-grid">
-        <div className="dashboard-card">
-          <h3>Профиль</h3>
-          <div className="profile-info">
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Имя пользователя:</strong> {user.username}</p>
-            <p><strong>Роль:</strong> {userRole?.display_name}</p>
-            <p><strong>Создан:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'passport':
+        return <PassportManager />;
+      case 'documents':
+        return <DocumentsManager />;
+      case 'messages':
+        return (
+          <div className="messages-placeholder">
+            <h2>Сообщения</h2>
+            <p>Система сообщений будет реализована в следующих фазах</p>
           </div>
-        </div>
-        
-        <div className="dashboard-card">
-          <h3>Быстрые действия</h3>
-          <div className="quick-actions">
-            <button className="action-btn">📄 Документы</button>
-            <button className="action-btn">🏛️ Услуги</button>
-            <button className="action-btn">💬 Сообщения</button>
-            <button className="action-btn">⭐ Рейтинг</button>
-          </div>
-        </div>
-        
-        <div className="dashboard-card">
-          <h3>Уведомления</h3>
-          <div className="notifications">
-            <div className="notification">
-              <div className="notification-icon">🔔</div>
-              <div className="notification-content">
-                <p>Добро пожаловать в impNet!</p>
-                <span className="notification-time">Сейчас</span>
+        );
+      default:
+        return (
+          <div className="dashboard">
+            <div className="dashboard-header">
+              <h1>Добро пожаловать, {user.full_name}!</h1>
+              <p className="role-badge">
+                {userRole?.display_name || 'Загружается...'}
+              </p>
+            </div>
+            
+            <div className="dashboard-grid">
+              <div className="dashboard-card">
+                <h3>Профиль</h3>
+                <div className="profile-info">
+                  <p><strong>Email:</strong> {user.email}</p>
+                  <p><strong>Имя пользователя:</strong> {user.username}</p>
+                  <p><strong>Роль:</strong> {userRole?.display_name}</p>
+                  <p><strong>Создан:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              <div className="dashboard-card">
+                <h3>Быстрые действия</h3>
+                <div className="quick-actions">
+                  <button onClick={() => setActiveTab('passport')} className="action-btn">🆔 Паспорт</button>
+                  <button onClick={() => setActiveTab('documents')} className="action-btn">📄 Документы</button>
+                  <button onClick={() => setActiveTab('messages')} className="action-btn">💬 Сообщения</button>
+                  <button className="action-btn">⭐ Рейтинг</button>
+                </div>
+              </div>
+              
+              <div className="dashboard-card">
+                <h3>Уведомления</h3>
+                <div className="notifications">
+                  <div className="notification">
+                    <div className="notification-icon">🔔</div>
+                    <div className="notification-content">
+                      <p>Добро пожаловать в impNet!</p>
+                      <span className="notification-time">Сейчас</span>
+                    </div>
+                  </div>
+                  <div className="notification">
+                    <div className="notification-icon">🆔</div>
+                    <div className="notification-content">
+                      <p>Создайте виртуальный паспорт</p>
+                      <span className="notification-time">Рекомендация</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="dashboard-card">
+                <h3>Системная информация</h3>
+                <div className="system-info">
+                  <p><strong>Версия:</strong> impNet v1.0.0</p>
+                  <p><strong>Статус:</strong> <span className="status-online">Онлайн</span></p>
+                  <p><strong>Пользователей:</strong> {roles.length > 0 ? 'Активно' : 'Загружается...'}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="dashboard-card">
-          <h3>Системная информация</h3>
-          <div className="system-info">
-            <p><strong>Версия:</strong> impNet v1.0.0</p>
-            <p><strong>Статус:</strong> <span className="status-online">Онлайн</span></p>
-            <p><strong>Пользователей:</strong> {roles.length > 0 ? 'Активно' : 'Загружается...'}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        );
+    }
+  };
+
+  return (
+    <>
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="main-content">
+        {renderContent()}
+      </main>
+    </>
   );
 };
 
