@@ -1,7 +1,10 @@
 import React, { useEffect, useState, createContext, useContext } from "react";
 import "./App.css";
+import "./components/Components.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
+import DocumentsManager from "./components/DocumentsManager";
+import PassportManager from "./components/PassportManager";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
