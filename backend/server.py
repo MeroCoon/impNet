@@ -205,7 +205,7 @@ async def init_default_roles():
         if admin_role:
             admin_user = {
                 "id": str(uuid.uuid4()),
-                "email": "admin@impnet.local",
+                "email": "admin@impnet.ru",
                 "username": "admin",
                 "full_name": "Администратор Системы",
                 "role_id": admin_role["id"],
