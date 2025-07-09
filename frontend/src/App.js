@@ -413,12 +413,7 @@ const AppContent = () => {
   return (
     <div className="app-container">
       {user ? (
-        <>
-          <Header />
-          <main className="main-content">
-            <Dashboard />
-          </main>
-        </>
+        <Dashboard />
       ) : (
         <LoginForm />
       )}
