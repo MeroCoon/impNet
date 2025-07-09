@@ -15,6 +15,31 @@ import jwt
 import json
 from collections import defaultdict
 
+
+# Helper function to convert MongoDB documents to JSON-serializable format
+def convert_mongo_doc(doc):
+    if doc is None:
+        return None
+    
+    if isinstance(doc, list):
+        return [convert_mongo_doc(item) for item in doc]
+    
+    if isinstance(doc, dict):
+        result = {}
+        for key, value in doc.items():
+            if key == '_id':
+                result['id'] = str(value)
+            elif isinstance(value, ObjectId):
+                result[key] = str(value)
+            elif isinstance(value, (dict, list)):
+                result[key] = convert_mongo_doc(value)
+            else:
+                result[key] = value
+        return result
+    
+    return doc
+
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -272,7 +297,7 @@ async def get_transactions(current_user: User = Depends(get_current_user)):
     transactions = await db.transactions.find({
         "$or": [{"from_user_id": current_user.id}, {"to_user_id": current_user.id}]
     }).sort("created_at", -1).to_list(100)
-    return transactions
+    return convert_mongo_doc(transactions)
 
 @api_router.get("/banking/users")
 async def get_users_for_transfer(current_user: User = Depends(get_current_user)):
@@ -303,7 +328,7 @@ async def send_message(message_data: ChatMessageCreate, current_user: User = Dep
 @api_router.get("/chat/messages")
 async def get_chat_messages(current_user: User = Depends(get_current_user)):
     messages = await db.chat_messages.find().sort("created_at", -1).limit(100).to_list(100)
-    return messages
+    return convert_mongo_doc(messages)
 
 # File sharing endpoints
 @api_router.post("/files/upload")
@@ -324,14 +349,14 @@ async def upload_file(file_data: FileShareCreate, current_user: User = Depends(g
 @api_router.get("/files/list")
 async def get_files(current_user: User = Depends(get_current_user)):
     files = await db.file_shares.find({"is_public": True}).sort("created_at", -1).to_list(100)
-    return files
+    return convert_mongo_doc(files)
 
 @api_router.get("/files/{file_id}")
 async def get_file(file_id: str, current_user: User = Depends(get_current_user)):
     file = await db.file_shares.find_one({"id": file_id})
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
-    return file
+    return convert_mongo_doc(file)
 
 # Email endpoints
 @api_router.post("/email/send")
@@ -352,7 +377,7 @@ async def get_inbox(current_user: User = Depends(get_current_user)):
         "to_user_id": current_user.id,
         "is_deleted": False
     }).sort("created_at", -1).to_list(100)
-    return emails
+    return convert_mongo_doc(emails)
 
 @api_router.get("/email/sent")
 async def get_sent_emails(current_user: User = Depends(get_current_user)):
@@ -360,7 +385,7 @@ async def get_sent_emails(current_user: User = Depends(get_current_user)):
         "from_user_id": current_user.id,
         "is_deleted": False
     }).sort("created_at", -1).to_list(100)
-    return emails
+    return convert_mongo_doc(emails)
 
 @api_router.put("/email/{email_id}/read")
 async def mark_email_as_read(email_id: str, current_user: User = Depends(get_current_user)):
@@ -379,7 +404,7 @@ async def search(query: SearchQuery, current_user: User = Depends(get_current_us
         messages = await db.chat_messages.find({
             "message": {"$regex": query.query, "$options": "i"}
         }).limit(20).to_list(20)
-        results["messages"] = messages
+        results["messages"] = convert_mongo_doc(messages)
     
     if query.search_type in ["all", "files"]:
         files = await db.file_shares.find({
@@ -389,7 +414,7 @@ async def search(query: SearchQuery, current_user: User = Depends(get_current_us
             ],
             "is_public": True
         }).limit(20).to_list(20)
-        results["files"] = files
+        results["files"] = convert_mongo_doc(files)
     
     if query.search_type in ["all", "users"]:
         users = await db.users.find({
