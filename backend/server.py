@@ -552,6 +552,7 @@ async def update_passport(
     # Update passport data
     update_data = passport_data.dict()
     update_data["updated_at"] = datetime.utcnow()
+    update_data["birth_date"] = datetime.combine(passport_data.birth_date, datetime.min.time())
     
     await db.passports.update_one(
         {"user_id": current_user.id},
