@@ -507,12 +507,12 @@ async def create_passport(
         user_id=current_user.id,
         series=series,
         number=number,
-        issue_date=date.today(),
+        issue_date=datetime.combine(date.today(), datetime.min.time()),
         issue_place=passport_data.issue_place,
         first_name=passport_data.first_name,
         last_name=passport_data.last_name,
         middle_name=passport_data.middle_name,
-        birth_date=passport_data.birth_date,
+        birth_date=datetime.combine(passport_data.birth_date, datetime.min.time()),
         birth_place=passport_data.birth_place,
         gender=passport_data.gender
     )
