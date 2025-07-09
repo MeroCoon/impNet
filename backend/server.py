@@ -110,6 +110,71 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class Document(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    type: str  # "passport", "photo", "certificate", etc.
+    filename: str
+    original_name: str
+    file_path: str
+    file_size: int
+    mime_type: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    description: Optional[str] = None
+
+class DocumentResponse(BaseModel):
+    id: str
+    type: str
+    filename: str
+    original_name: str
+    file_size: int
+    mime_type: str
+    created_at: datetime
+    description: Optional[str] = None
+    url: str
+
+class Passport(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    series: str
+    number: str
+    issue_date: date
+    issue_place: str
+    photo_document_id: Optional[str] = None
+    first_name: str
+    last_name: str
+    middle_name: Optional[str] = None
+    birth_date: date
+    birth_place: str
+    gender: str  # "М" or "Ж"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class PassportCreate(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: Optional[str] = None
+    birth_date: date
+    birth_place: str
+    gender: str
+    issue_place: str
+
+class PassportResponse(BaseModel):
+    id: str
+    series: str
+    number: str
+    issue_date: date
+    issue_place: str
+    first_name: str
+    last_name: str
+    middle_name: Optional[str] = None
+    birth_date: date
+    birth_place: str
+    gender: str
+    created_at: datetime
+    updated_at: datetime
+    photo_url: Optional[str] = None
+
 class StatusCheck(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
