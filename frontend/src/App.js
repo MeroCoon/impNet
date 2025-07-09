@@ -230,7 +230,7 @@ const LoginForm = () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              placeholder="admin@impnet.local"
+              placeholder="admin@impnet.ru"
             />
           </div>
           
