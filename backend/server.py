@@ -420,6 +420,178 @@ async def get_users(current_user: User = Depends(get_admin_user)):
     users = await db.users.find().to_list(1000)
     return [UserResponse(**user) for user in users]
 
+# Document endpoints
+@api_router.post("/documents/upload", response_model=DocumentResponse)
+async def upload_document(
+    file: UploadFile = File(...),
+    document_type: str = Form(...),
+    description: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Validate file size (max 10MB)
+    if file.size > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size too large (max 10MB)")
+    
+    # Save file
+    file_path = await save_uploaded_file(file, current_user.id)
+    
+    # Create document record
+    document = Document(
+        user_id=current_user.id,
+        type=document_type,
+        filename=file_path.split('/')[-1],
+        original_name=file.filename,
+        file_path=file_path,
+        file_size=file.size,
+        mime_type=file.content_type,
+        description=description
+    )
+    
+    await db.documents.insert_one(document.dict())
+    
+    # Create response
+    response = DocumentResponse(
+        **document.dict(),
+        url=f"/uploads/{file_path.split('uploads/')[-1]}"
+    )
+    
+    return response
+
+@api_router.get("/documents", response_model=List[DocumentResponse])
+async def get_documents(current_user: User = Depends(get_current_active_user)):
+    documents = await db.documents.find({"user_id": current_user.id}).to_list(1000)
+    
+    responses = []
+    for doc in documents:
+        doc_response = DocumentResponse(
+            **doc,
+            url=f"/uploads/{doc['file_path'].split('uploads/')[-1]}"
+        )
+        responses.append(doc_response)
+    
+    return responses
+
+@api_router.delete("/documents/{document_id}")
+async def delete_document(document_id: str, current_user: User = Depends(get_current_active_user)):
+    # Find document
+    document = await db.documents.find_one({"id": document_id, "user_id": current_user.id})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Delete file
+    file_path = ROOT_DIR / document["file_path"]
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete from database
+    await db.documents.delete_one({"id": document_id})
+    
+    return {"message": "Document deleted successfully"}
+
+# Passport endpoints
+@api_router.post("/passport", response_model=PassportResponse)
+async def create_passport(
+    passport_data: PassportCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    # Check if user already has a passport
+    existing_passport = await db.passports.find_one({"user_id": current_user.id})
+    if existing_passport:
+        raise HTTPException(status_code=400, detail="User already has a passport")
+    
+    # Generate passport series and number
+    series, number = generate_passport_number()
+    
+    # Create passport
+    passport = Passport(
+        user_id=current_user.id,
+        series=series,
+        number=number,
+        issue_date=date.today(),
+        issue_place=passport_data.issue_place,
+        first_name=passport_data.first_name,
+        last_name=passport_data.last_name,
+        middle_name=passport_data.middle_name,
+        birth_date=passport_data.birth_date,
+        birth_place=passport_data.birth_place,
+        gender=passport_data.gender
+    )
+    
+    await db.passports.insert_one(passport.dict())
+    
+    # Create response
+    response = PassportResponse(**passport.dict())
+    return response
+
+@api_router.get("/passport", response_model=PassportResponse)
+async def get_passport(current_user: User = Depends(get_current_active_user)):
+    passport = await db.passports.find_one({"user_id": current_user.id})
+    if not passport:
+        raise HTTPException(status_code=404, detail="Passport not found")
+    
+    response = PassportResponse(**passport)
+    
+    # Add photo URL if exists
+    if passport.get("photo_document_id"):
+        photo_doc = await db.documents.find_one({"id": passport["photo_document_id"]})
+        if photo_doc:
+            response.photo_url = f"/uploads/{photo_doc['file_path'].split('uploads/')[-1]}"
+    
+    return response
+
+@api_router.put("/passport", response_model=PassportResponse)
+async def update_passport(
+    passport_data: PassportCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    # Find existing passport
+    existing_passport = await db.passports.find_one({"user_id": current_user.id})
+    if not existing_passport:
+        raise HTTPException(status_code=404, detail="Passport not found")
+    
+    # Update passport data
+    update_data = passport_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.passports.update_one(
+        {"user_id": current_user.id},
+        {"$set": update_data}
+    )
+    
+    # Get updated passport
+    updated_passport = await db.passports.find_one({"user_id": current_user.id})
+    response = PassportResponse(**updated_passport)
+    
+    # Add photo URL if exists
+    if updated_passport.get("photo_document_id"):
+        photo_doc = await db.documents.find_one({"id": updated_passport["photo_document_id"]})
+        if photo_doc:
+            response.photo_url = f"/uploads/{photo_doc['file_path'].split('uploads/')[-1]}"
+    
+    return response
+
+@api_router.post("/passport/photo")
+async def set_passport_photo(
+    document_id: str = Form(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Check if document exists and belongs to user
+    document = await db.documents.find_one({"id": document_id, "user_id": current_user.id})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Check if document is an image
+    if not is_image_file(document["filename"]):
+        raise HTTPException(status_code=400, detail="Document must be an image")
+    
+    # Update passport with photo
+    await db.passports.update_one(
+        {"user_id": current_user.id},
+        {"$set": {"photo_document_id": document_id, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Passport photo updated successfully"}
+
 @api_router.get("/")
 async def root():
     return {"message": "impNet API v1.0.0"}
