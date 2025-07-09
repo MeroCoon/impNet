@@ -557,3 +557,23 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
+
+/* Messages placeholder */
+.messages-placeholder {
+  text-align: center;
+  padding: 4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+}
+
+.messages-placeholder h2 {
+  color: var(--text-primary);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.messages-placeholder p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
