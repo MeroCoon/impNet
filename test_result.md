@@ -116,66 +116,84 @@ backend:
       - working: true
         agent: "main"
         comment: "Implemented JWT auth, bcrypt password hashing, user registration/login endpoints"
+      - working: true
+        agent: "testing"
+        comment: "Tested user registration, login, and current user info endpoints. All working correctly."
   
   - task: "Banking system with Imperium currency"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Banking system with transfers, balance checking, transaction history, central bank setup"
+      - working: false
+        agent: "testing"
+        comment: "Balance checking and transfers work correctly. Transaction history endpoint returns 500 error due to MongoDB ObjectId serialization issue."
   
   - task: "Chat system with WebSocket support"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Chat endpoints implemented, WebSocket support for real-time messaging"
+      - working: false
+        agent: "testing"
+        comment: "Chat message sending and retrieval endpoints return 500 error due to MongoDB ObjectId serialization issue."
   
   - task: "Email system for internal messaging"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Email send/receive endpoints, inbox/sent functionality"
+      - working: false
+        agent: "testing"
+        comment: "Email sending works correctly, but inbox and sent emails endpoints return 500 error due to MongoDB ObjectId serialization issue."
   
   - task: "File sharing system"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "File upload/download with base64 encoding, public/private file sharing"
+      - working: false
+        agent: "testing"
+        comment: "File upload works correctly, but file listing endpoint returns 500 error due to MongoDB ObjectId serialization issue."
   
   - task: "Search engine for content"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Search across messages, files, and users with filtering options"
+      - working: false
+        agent: "testing"
+        comment: "Search for users works correctly, but search for messages, files, and all content returns 500 error due to MongoDB ObjectId serialization issue."
 
 frontend:
   - task: "User authentication UI"
@@ -273,10 +291,17 @@ test_plan:
     - "User authentication and registration"
     - "Banking system with Imperium currency"
     - "Chat system with WebSocket support"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Banking system with Imperium currency"
+    - "Chat system with WebSocket support"
+    - "Email system for internal messaging"
+    - "File sharing system"
+    - "Search engine for content"
   test_all: true
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
     message: "Successfully implemented complete ImpNet ecosystem with all core features. Registration and login working, banking system with Imperium currency active, chat system implemented, email and file sharing operational, search engine functional. Ready for backend testing."
+  - agent: "testing"
+    message: "Completed backend testing. Found MongoDB ObjectId serialization issue affecting multiple endpoints. User authentication works perfectly. Basic banking operations (balance, transfers) work correctly, but transaction history fails. Chat, email listing, file listing, and search endpoints also affected by the same serialization issue. The core issue is that MongoDB ObjectId fields are not being properly converted to strings before JSON serialization."
