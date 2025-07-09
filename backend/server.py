@@ -200,6 +200,36 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def generate_passport_number():
+    """Generate passport series and number"""
+    series = ''.join(secrets.choice(string.digits) for _ in range(4))
+    number = ''.join(secrets.choice(string.digits) for _ in range(6))
+    return series, number
+
+async def save_uploaded_file(file: UploadFile, user_id: str) -> str:
+    """Save uploaded file and return file path"""
+    # Generate unique filename
+    file_extension = file.filename.split('.')[-1] if '.' in file.filename else ''
+    unique_filename = f"{user_id}_{uuid.uuid4().hex}.{file_extension}"
+    
+    # Create user directory
+    user_dir = UPLOAD_DIR / user_id
+    user_dir.mkdir(exist_ok=True)
+    
+    file_path = user_dir / unique_filename
+    
+    # Save file
+    async with aiofiles.open(file_path, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    return str(file_path.relative_to(ROOT_DIR))
+
+def is_image_file(filename: str) -> bool:
+    """Check if file is an image"""
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
+    return any(filename.lower().endswith(ext) for ext in image_extensions)
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
