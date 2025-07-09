@@ -55,6 +55,9 @@ def convert_mongo_doc(doc):
     return doc
 """
 
+# Import statement for ObjectId
+OBJECTID_IMPORT = "from bson import ObjectId"
+
 # Code to modify the endpoints to use the converter
 ENDPOINT_FIXES = [
     # Banking transactions endpoint
@@ -128,6 +131,18 @@ def write_file(file_path, content):
     with open(file_path, 'w') as f:
         f.write(content)
 
+def add_objectid_import(content):
+    # Check if ObjectId is already imported
+    if "from bson import ObjectId" not in content:
+        # Add import after the first import statement
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            if line.startswith('import ') or line.startswith('from '):
+                lines.insert(i + 1, OBJECTID_IMPORT)
+                break
+        return '\n'.join(lines)
+    return content
+
 def insert_after_imports(content):
     # Find the last import statement
     import_lines = [i for i, line in enumerate(content.split('\n')) if line.startswith('import ') or line.startswith('from ')]
@@ -151,6 +166,9 @@ def main():
     
     # Read the server.py file
     content = read_file(SERVER_FILE)
+    
+    # Add ObjectId import
+    content = add_objectid_import(content)
     
     # Insert the document converter function after imports
     content = insert_after_imports(content)
