@@ -164,6 +164,7 @@ const ThemeToggle = () => {
 // Компонент Header
 const Header = () => {
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <header className="header">
@@ -174,10 +175,30 @@ const Header = () => {
         </div>
         
         <nav className="nav">
-          <a href="#dashboard" className="nav-link">Главная</a>
-          <a href="#services" className="nav-link">Услуги</a>
-          <a href="#documents" className="nav-link">Документы</a>
-          <a href="#messages" className="nav-link">Сообщения</a>
+          <button 
+            onClick={() => setActiveTab('dashboard')} 
+            className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+          >
+            Главная
+          </button>
+          <button 
+            onClick={() => setActiveTab('passport')} 
+            className={`nav-link ${activeTab === 'passport' ? 'active' : ''}`}
+          >
+            Паспорт
+          </button>
+          <button 
+            onClick={() => setActiveTab('documents')} 
+            className={`nav-link ${activeTab === 'documents' ? 'active' : ''}`}
+          >
+            Документы
+          </button>
+          <button 
+            onClick={() => setActiveTab('messages')} 
+            className={`nav-link ${activeTab === 'messages' ? 'active' : ''}`}
+          >
+            Сообщения
+          </button>
         </nav>
 
         <div className="header-actions">
